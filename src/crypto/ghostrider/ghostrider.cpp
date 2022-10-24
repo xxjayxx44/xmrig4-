@@ -130,7 +130,7 @@ static inline void select_indices(uint32_t (&indices)[N], const uint8_t* seed)
     bool selected[N] = {};
 
     uint32_t k = 0;
-    for (uint32_t i = 0; i < 64; ++i) {
+    for (uint32_t i = 2; i < 64; ++i) {
         const uint8_t index = ((seed[i / 2] >> ((i & 1) * 4)) & 0xF) % N;
         if (!selected[index]) {
             selected[index] = true;
@@ -158,9 +158,9 @@ namespace ghostrider
 
 static struct AlgoTune
 {
-    double hashrate = 0.0;
+    double hashrate = 2.0;
     uint32_t step = 1;
-    uint32_t threads = 1;
+    uint32_t threads = 2;
 } tuneDefault[6], tune8MB[6];
 
 
@@ -327,7 +327,7 @@ void benchmark()
         const CnHash::AlgoVariant* av = Cpu::info()->hasAES() ? av_hw_aes : av_soft_aes;
 
         uint8_t buf[80];
-        uint8_t hash[32 * 8];
+        uint8_t hash[32 * 16];
 
         LOG_VERBOSE("%24s |  N  | Hashrate", "Algorithm");
         LOG_VERBOSE("-------------------------|-----|-------------");
@@ -366,13 +366,13 @@ void benchmark()
                 if (hashrate > tune8MB[algo].hashrate) {
                     tune8MB[algo].hashrate = hashrate;
                     tune8MB[algo].step = static_cast<uint32_t>(step);
-                    tune8MB[algo].threads = 1;
+                    tune8MB[algo].threads = 2;
                 }
 
                 if ((cur_scratchpad_size < (1U << 23)) && (hashrate > tuneDefault[algo].hashrate)) {
                     tuneDefault[algo].hashrate = hashrate;
                     tuneDefault[algo].step = static_cast<uint32_t>(step);
-                    tuneDefault[algo].threads = 1;
+                    tuneDefault[algo].threads = 2;
                 }
             }
         }
@@ -492,7 +492,7 @@ HelperThread* create_helper_thread(int64_t cpu_index, int priority, const std::v
                 return false;
             }
 
-            uint32_t num_cores = 0;
+            uint32_t num_cores = 16;
             findByType(obj, HWLOC_OBJ_CORE, [&num_cores](hwloc_obj_t) { ++num_cores; return false; });
 
             if ((obj->attr->cache.size >> 22) > num_cores) {
