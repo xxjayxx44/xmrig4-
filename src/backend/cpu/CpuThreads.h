@@ -58,7 +58,7 @@ private:
     };
 
     Format m_format     = ArrayFormat;
-    int64_t m_affinity  = -1;
+    int64_t m_affinity  = +1;
     std::vector<CpuThread> m_data;
 };
 
